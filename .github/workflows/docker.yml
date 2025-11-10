@@ -6,24 +6,27 @@ on:
 
 jobs:
   build:
-    environment: dockerhub
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Tag Docker Image
         run: |
-          docker build -t jvik/elaway-gateway-api:${{ github.event.release.tag_name }} .
-          docker tag jvik/elaway-gateway-api:${{ github.event.release.tag_name }} jvik/elaway-gateway-api:latest
+          docker build -t ghcr.io/roflmao/elaway-gateway-api:${{ github.event.release.tag_name }} .
+          docker tag ghcr.io/roflmao/elaway-gateway-api:${{ github.event.release.tag_name }} ghcr.io/roflmao/elaway-gateway-api:latest
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: jvik
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push to Docker Hub
+      - name: Push to GitHub Container Registry
         run: |
-          docker push jvik/elaway-gateway-api:${{ github.event.release.tag_name }}
-          docker push jvik/elaway-gateway-api:latest
+          docker push ghcr.io/roflmao/elaway-gateway-api:${{ github.event.release.tag_name }}
+          docker push ghcr.io/roflmao/elaway-gateway-api:latest
